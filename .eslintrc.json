@@ -1,0 +1,33 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": ["airbnb-base"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "quotes": ["error", "backtick"],
+    "no-unused-vars": "off",
+    "no-undef": "off",
+    "no-param-reassign": "off",
+    "max-len": "off",
+    "operator-linebreak": "off",
+    "func-names": "off",
+    "space-before-function-paren": "off",
+    "no-plusplus": "off",
+    "implicit-arrow-linebreak": "off",
+    "no-continue": "off",
+    "no-bitwise": "off",
+    "max-classes-per-file": "off",
+    "linebreak-style": "off",
+    "object-curly-newline": "off"
+  }
+}
