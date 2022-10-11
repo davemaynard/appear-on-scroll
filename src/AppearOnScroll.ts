@@ -8,70 +8,64 @@ export class AppearOnScroll {
   config = DEFAULT_CONFIG;
   elements: NodeListOf<HTMLElement>;
 
-  hideElements = () => {
-    const {elements, stylesBeforeShow} = this;
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
-      for (let j = 0; j < Object.keys(stylesBeforeShow).length; j++) {
-        const key = Object.keys(stylesBeforeShow)[j];
-        element.style[key] = stylesBeforeShow[key];
-      }
-      element.classList.remove('appear-on-scroll--visible');
-    }
+  showElement = (element: HTMLElement) => {
+    Object.keys(this.stylesAfterShow).forEach((key) => {
+      element.style[key] = this.stylesAfterShow[key];
+    });
+    element.classList.add('appear-on-scroll--visible');
+  };
+
+  hideElement = (element: HTMLElement) => {
+    Object.keys(this.stylesBeforeShow).forEach((key) => {
+      element.style[key] = this.stylesBeforeShow[key];
+    });
+    element.classList.remove('appear-on-scroll--visible');
+  };
+
+  hideAllElements = () => {
+    this.elements.forEach((element) => {
+      this.hideElement(element);
+    });
   };
 
   isElementVisible = (element: HTMLElement) => {
     const windowBounds = {
       top: window.pageYOffset,
-      right: window.pageXOffset + window.innerWidth,
       bottom: window.pageYOffset + window.innerHeight,
-      left: window.pageXOffset,
     };
     const elementRect = element.getBoundingClientRect();
     const elementBounds = {
       top: elementRect.top + windowBounds.top,
-      right: elementRect.left + elementRect.width,
       bottom: elementRect.top + windowBounds.top + elementRect.height,
-      left: elementRect.left,
     };
 
     return (
-      (elementBounds.top < windowBounds.bottom &&
-        elementBounds.right > windowBounds.left &&
-        elementBounds.bottom > windowBounds.top &&
-        elementBounds.left < windowBounds.right) ||
+      (elementBounds.top < windowBounds.bottom && elementBounds.bottom > windowBounds.top) ||
       element.style.position === 'fixed'
     );
   };
 
-  onScroll = () => {
-    const {elements, prevPageY, config, isElementVisible, stylesAfterShow, stylesBeforeShow} = this;
-    const direction = prevPageY > window.pageYOffset ? 'up' : 'down';
-    const pageYDiff = Math.abs(prevPageY - window.pageYOffset);
+  handleScroll = () => {
+    const isScrollingDown = this.prevPageY < window.pageYOffset;
+    const pageYDiff = Math.abs(this.prevPageY - window.pageYOffset);
 
-    if (config.slide === true) {
+    if (this.config.slide === true) {
       if (pageYDiff > 0) {
-        stylesBeforeShow.transform =
-          direction === 'down' ? `translate(0px, ${config.slideDistance})` : `translate(0px, -${config.slideDistance})`;
+        this.stylesBeforeShow.transform = isScrollingDown
+          ? `translate(0px, ${this.config.slideDistance})`
+          : `translate(0px, -${this.config.slideDistance})`;
+      } else {
+        this.stylesBeforeShow.transform = DEFAULT_STYLES_BEFORE_SHOW.transform;
       }
     }
 
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
-      if (isElementVisible(element)) {
-        for (let k = 0; k < Object.keys(stylesAfterShow).length; k++) {
-          const key = Object.keys(stylesAfterShow)[k];
-          element.style[key] = stylesAfterShow[key];
-        }
-        element.classList.add('appear-on-scroll--visible');
-      } else if (config.once === false || !element.classList.contains('appear-on-scroll--visible')) {
-        for (let j = 0; j < Object.keys(stylesBeforeShow).length; j++) {
-          const key = Object.keys(stylesBeforeShow)[j];
-          element.style[key] = stylesBeforeShow[key];
-        }
-        element.classList.remove('appear-on-scroll--visible');
+    this.elements.forEach((element) => {
+      if (this.isElementVisible(element)) {
+        this.showElement(element);
+      } else if (this.config.once === false || !element.classList.contains('appear-on-scroll--visible')) {
+        this.hideElement(element);
       }
-    }
+    });
 
     // Store previous scroll position
     this.prevPageY = window.pageYOffset;
@@ -85,27 +79,25 @@ export class AppearOnScroll {
     };
 
     // Set transition parameters based on options
-    const {stylesBeforeShow, config, stylesAfterShow, hideElements, onScroll} = this;
-    stylesBeforeShow.transitionTimingFunction = config.easing;
-    stylesAfterShow.transitionDuration = `${config.duration}ms`;
-    stylesAfterShow.transitionDelay = `${config.delay}ms`;
-    stylesAfterShow.transitionDuration = `${config.duration}ms`;
-    stylesAfterShow.transitionTimingFunction = config.easing;
+    this.stylesBeforeShow.transitionTimingFunction = this.config.easing;
+    this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
+    this.stylesAfterShow.transitionDelay = `${this.config.delay}ms`;
+    this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
+    this.stylesAfterShow.transitionTimingFunction = this.config.easing;
 
-    if (config.slide === false) {
-      delete stylesBeforeShow.transform;
-      delete stylesAfterShow.transform;
+    if (this.config.slide === false) {
+      delete this.stylesBeforeShow.transform;
+      delete this.stylesAfterShow.transform;
     }
 
     this.elements = document.querySelectorAll(selector);
-    const {elements} = this;
-    if (elements.length) {
-      // Hide elements on init
-      hideElements();
+    if (this.elements.length) {
+      // Hide all elements on init
+      this.hideAllElements();
 
       // Attach scroll event listener
-      window.addEventListener('scroll', onScroll);
-      onScroll();
+      window.addEventListener('scroll', this.handleScroll);
+      this.handleScroll();
     }
   }
 }

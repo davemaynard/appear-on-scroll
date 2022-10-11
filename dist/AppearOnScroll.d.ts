@@ -5,8 +5,10 @@ export declare class AppearOnScroll {
     stylesAfterShow: Partial<CSSStyleDeclaration>;
     config: Config;
     elements: NodeListOf<HTMLElement>;
-    hideElements: () => void;
+    showElement: (element: HTMLElement) => void;
+    hideElement: (element: HTMLElement) => void;
+    hideAllElements: () => void;
     isElementVisible: (element: HTMLElement) => boolean;
-    onScroll: () => void;
+    handleScroll: () => void;
     constructor(selector: string, options?: Partial<Config>);
 }
