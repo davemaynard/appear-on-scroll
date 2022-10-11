@@ -1,1 +1,1 @@
-export { AppearOnScroll } from './AppearOnScroll';
+export {AppearOnScroll} from './AppearOnScroll';
