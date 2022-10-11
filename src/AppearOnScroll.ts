@@ -2,7 +2,7 @@ import {DEFAULT_STYLES_BEFORE_SHOW, DEFAULT_STYLES_AFTER_SHOW, DEFAULT_CONFIG} f
 import {Config} from './types';
 
 export class AppearOnScroll {
-  prevPageY = window.pageYOffset;
+  prevPageY = window.scrollY;
   stylesBeforeShow = DEFAULT_STYLES_BEFORE_SHOW;
   stylesAfterShow = DEFAULT_STYLES_AFTER_SHOW;
   config = DEFAULT_CONFIG;
@@ -30,8 +30,8 @@ export class AppearOnScroll {
 
   isElementVisible = (element: HTMLElement) => {
     const windowBounds = {
-      top: window.pageYOffset,
-      bottom: window.pageYOffset + window.innerHeight,
+      top: window.scrollY,
+      bottom: window.scrollY + window.innerHeight,
     };
     const elementRect = element.getBoundingClientRect();
     const elementBounds = {
@@ -46,8 +46,8 @@ export class AppearOnScroll {
   };
 
   handleScroll = () => {
-    const isScrollingDown = this.prevPageY < window.pageYOffset;
-    const pageYDiff = Math.abs(this.prevPageY - window.pageYOffset);
+    const isScrollingDown = this.prevPageY < window.scrollY;
+    const pageYDiff = Math.abs(this.prevPageY - window.scrollY);
 
     if (this.config.slide === true) {
       if (pageYDiff > 0) {
@@ -68,7 +68,7 @@ export class AppearOnScroll {
     });
 
     // Store previous scroll position
-    this.prevPageY = window.pageYOffset;
+    this.prevPageY = window.scrollY;
   };
 
   constructor(selector: string, options?: Partial<Config>) {
