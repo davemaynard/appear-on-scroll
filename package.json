@@ -1,6 +1,6 @@
 {
   "name": "appear-on-scroll",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Show elements as they enter the browser viewport on scroll.",
   "main": "dist/index.js",
   "scripts": {
