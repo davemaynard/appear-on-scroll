@@ -6,8 +6,7 @@ export declare class AppearOnScroll {
     config: Config;
     elements: NodeListOf<HTMLElement>;
     hideElements: () => void;
-    throttle: (callback: () => void, limit: number) => () => void;
     isElementVisible: (element: HTMLElement) => boolean;
     onScroll: () => void;
-    constructor(selector: string, options: Partial<Config>);
+    constructor(selector: string, options?: Partial<Config>);
 }

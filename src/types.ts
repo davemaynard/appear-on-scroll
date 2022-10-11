@@ -7,5 +7,4 @@ export type Config = {
   once: boolean;
   slide: boolean;
   slideDistance: string;
-  throttleDelay: number;
 };

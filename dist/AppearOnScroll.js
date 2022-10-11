@@ -19,18 +19,6 @@ class AppearOnScroll {
                 element.classList.remove('appear-on-scroll--visible');
             }
         };
-        this.throttle = (callback, limit) => {
-            let waiting = false;
-            return () => {
-                if (!waiting) {
-                    callback.apply(this);
-                    waiting = true;
-                    setTimeout(() => {
-                        waiting = false;
-                    }, limit);
-                }
-            };
-        };
         this.isElementVisible = (element) => {
             const windowBounds = {
                 top: window.pageYOffset,
@@ -81,7 +69,7 @@ class AppearOnScroll {
             this.prevPageY = window.pageYOffset;
         };
         this.config = Object.assign(Object.assign({}, constants_1.DEFAULT_CONFIG), options);
-        const { stylesBeforeShow, config, stylesAfterShow, hideElements, onScroll, throttle } = this;
+        const { stylesBeforeShow, config, stylesAfterShow, hideElements, onScroll } = this;
         stylesBeforeShow.transitionTimingFunction = config.easing;
         stylesAfterShow.transitionDuration = `${config.duration}ms`;
         stylesAfterShow.transitionDelay = `${config.delay}ms`;
@@ -94,12 +82,9 @@ class AppearOnScroll {
         this.elements = document.querySelectorAll(selector);
         const { elements } = this;
         if (elements.length) {
-            for (let i = 0; i < elements.length; i++) {
-                elements[i].classList.add('appear-on-scroll');
-            }
             hideElements();
+            window.addEventListener('scroll', onScroll);
             onScroll();
-            window.addEventListener('scroll', throttle(onScroll.bind(this), config.throttleDelay));
         }
     }
 }

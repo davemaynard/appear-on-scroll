@@ -8,7 +8,6 @@ exports.DEFAULT_CONFIG = {
     once: false,
     slide: true,
     slideDistance: '25px',
-    throttleDelay: 0,
 };
 exports.DEFAULT_STYLES_BEFORE_SHOW = {
     transitionProperty: 'none',

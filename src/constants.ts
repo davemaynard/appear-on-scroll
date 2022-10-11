@@ -7,7 +7,6 @@ export const DEFAULT_CONFIG: Config = {
   once: false,
   slide: true,
   slideDistance: '25px',
-  throttleDelay: 0,
 };
 
 export const DEFAULT_STYLES_BEFORE_SHOW: Styles = {

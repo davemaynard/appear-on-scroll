@@ -1,6 +1,6 @@
 {
   "name": "appear-on-scroll",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Show elements as they enter the browser viewport on scroll.",
   "main": "dist/index.js",
   "scripts": {
@@ -16,13 +16,13 @@
   "keywords": [
     "appear",
     "show",
-    "on",
-    "scroll",
     "reveal",
     "display",
     "lazy",
     "load",
-    "lazy-load"
+    "lazy-load",
+    "on",
+    "scroll"
   ],
   "author": "dmaynard24",
   "license": "ISC",

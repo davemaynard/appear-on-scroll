@@ -20,19 +20,6 @@ export class AppearOnScroll {
     }
   };
 
-  throttle = (callback: () => void, limit: number) => {
-    let waiting = false;
-    return () => {
-      if (!waiting) {
-        callback.apply(this);
-        waiting = true;
-        setTimeout(() => {
-          waiting = false;
-        }, limit);
-      }
-    };
-  };
-
   isElementVisible = (element: HTMLElement) => {
     const windowBounds = {
       top: window.pageYOffset,
@@ -86,19 +73,19 @@ export class AppearOnScroll {
       }
     }
 
-    // store previous scroll position
+    // Store previous scroll position
     this.prevPageY = window.pageYOffset;
   };
 
-  constructor(selector: string, options: Partial<Config>) {
+  constructor(selector: string, options?: Partial<Config>) {
     // Immediately override any of the default config with options
     this.config = {
       ...DEFAULT_CONFIG,
       ...options,
     };
 
-    // set transition parameters based on options
-    const {stylesBeforeShow, config, stylesAfterShow, hideElements, onScroll, throttle} = this;
+    // Set transition parameters based on options
+    const {stylesBeforeShow, config, stylesAfterShow, hideElements, onScroll} = this;
     stylesBeforeShow.transitionTimingFunction = config.easing;
     stylesAfterShow.transitionDuration = `${config.duration}ms`;
     stylesAfterShow.transitionDelay = `${config.delay}ms`;
@@ -113,14 +100,12 @@ export class AppearOnScroll {
     this.elements = document.querySelectorAll(selector);
     const {elements} = this;
     if (elements.length) {
-      for (let i = 0; i < elements.length; i++) {
-        elements[i].classList.add('appear-on-scroll');
-      }
-
+      // Hide elements on init
       hideElements();
 
+      // Attach scroll event listener
+      window.addEventListener('scroll', onScroll);
       onScroll();
-      window.addEventListener('scroll', throttle(onScroll.bind(this), config.throttleDelay));
     }
   }
 }
