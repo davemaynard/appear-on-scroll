@@ -1,5 +1,11 @@
 import {addStylesheet, createTransitionShorthand, removeStylesheet} from './utils';
-import {DEFAULT_CONFIG, DEFAULT_STYLES_AFTER_SHOW, DEFAULT_STYLES_BEFORE_SHOW} from './constants';
+import {
+  BASE_CLASS_NAME,
+  DEFAULT_CONFIG,
+  DEFAULT_STYLES_AFTER_SHOW,
+  DEFAULT_STYLES_BEFORE_SHOW,
+  MODIFIER_CLASS_NAME,
+} from './constants';
 import {Config} from './types';
 
 export class AppearOnScroll {
@@ -9,20 +15,21 @@ export class AppearOnScroll {
   stylesAfterShow = DEFAULT_STYLES_AFTER_SHOW;
   config = DEFAULT_CONFIG;
   elements: NodeListOf<HTMLElement>;
-  styleSheet = document.createElement('style');
+  beforeStyleSheet = document.createElement('style');
+  afterStyleSheet = document.createElement('style');
 
   showElement = (element: HTMLElement) => {
-    element.classList.add('appear-on-scroll--visible');
+    element.classList.add(MODIFIER_CLASS_NAME);
   };
 
   hideElement = (element: HTMLElement) => {
-    element.classList.remove('appear-on-scroll--visible');
+    element.classList.remove(MODIFIER_CLASS_NAME);
   };
 
   hideAllElements = () => {
     this.elements.forEach((element) => {
-      // Upon hiding all elements the first time, apply the default class
-      element.classList.add('appear-on-scroll');
+      // Upon hiding all elements the first time, apply the base class
+      element.classList.add(BASE_CLASS_NAME);
       this.hideElement(element);
     });
   };
@@ -58,15 +65,15 @@ export class AppearOnScroll {
       }
 
       // Replace stylesheet
-      removeStylesheet(this.styleSheet);
-      addStylesheet(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+      removeStylesheet(this.beforeStyleSheet);
+      addStylesheet(`.${BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
       this.isPreviouslyScrollingDown = isScrollingDown;
     }
 
     this.elements.forEach((element) => {
       if (this.isElementVisible(element)) {
         this.showElement(element);
-      } else if (this.config.once === false || !element.classList.contains('appear-on-scroll--visible')) {
+      } else if (this.config.once === false || !element.classList.contains(MODIFIER_CLASS_NAME)) {
         this.hideElement(element);
       }
     });
@@ -100,7 +107,8 @@ export class AppearOnScroll {
       // Hide all elements on init
       this.hideAllElements();
 
-      addStylesheet(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+      addStylesheet(`.${BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
+      addStylesheet(`.${BASE_CLASS_NAME}.${MODIFIER_CLASS_NAME}`, this.afterStyleSheet, this.stylesAfterShow);
 
       // Attach scroll event listener
       window.addEventListener('scroll', this.handleScroll);

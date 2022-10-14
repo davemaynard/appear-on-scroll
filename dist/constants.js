@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_STYLES_AFTER_SHOW = exports.DEFAULT_STYLES_BEFORE_SHOW = exports.DEFAULT_CONFIG = void 0;
+exports.DEFAULT_STYLES_AFTER_SHOW = exports.DEFAULT_STYLES_BEFORE_SHOW = exports.DEFAULT_CONFIG = exports.MODIFIER_CLASS_NAME = exports.BASE_CLASS_NAME = void 0;
 const utils_1 = require("./utils");
+exports.BASE_CLASS_NAME = 'appear-on-scroll';
+exports.MODIFIER_CLASS_NAME = 'appear-on-scroll--visible';
 exports.DEFAULT_CONFIG = {
     delay: 0,
     duration: 600,

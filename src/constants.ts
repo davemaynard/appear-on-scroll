@@ -1,6 +1,9 @@
 import {createTransitionShorthand} from './utils';
 import {Config, Styles} from './types';
 
+export const BASE_CLASS_NAME = 'appear-on-scroll';
+export const MODIFIER_CLASS_NAME = 'appear-on-scroll--visible';
+
 export const DEFAULT_CONFIG: Config = {
   delay: 0,
   duration: 600,

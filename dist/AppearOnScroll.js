@@ -10,16 +10,17 @@ class AppearOnScroll {
         this.stylesBeforeShow = constants_1.DEFAULT_STYLES_BEFORE_SHOW;
         this.stylesAfterShow = constants_1.DEFAULT_STYLES_AFTER_SHOW;
         this.config = constants_1.DEFAULT_CONFIG;
-        this.styleSheet = document.createElement('style');
+        this.beforeStyleSheet = document.createElement('style');
+        this.afterStyleSheet = document.createElement('style');
         this.showElement = (element) => {
-            element.classList.add('appear-on-scroll--visible');
+            element.classList.add(constants_1.MODIFIER_CLASS_NAME);
         };
         this.hideElement = (element) => {
-            element.classList.remove('appear-on-scroll--visible');
+            element.classList.remove(constants_1.MODIFIER_CLASS_NAME);
         };
         this.hideAllElements = () => {
             this.elements.forEach((element) => {
-                element.classList.add('appear-on-scroll');
+                element.classList.add(constants_1.BASE_CLASS_NAME);
                 this.hideElement(element);
             });
         };
@@ -48,15 +49,15 @@ class AppearOnScroll {
                 else {
                     this.stylesBeforeShow.transform = constants_1.DEFAULT_STYLES_BEFORE_SHOW.transform;
                 }
-                (0, utils_1.removeStylesheet)(this.styleSheet);
-                (0, utils_1.addStylesheet)(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+                (0, utils_1.removeStylesheet)(this.beforeStyleSheet);
+                (0, utils_1.addStylesheet)(`.${constants_1.BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
                 this.isPreviouslyScrollingDown = isScrollingDown;
             }
             this.elements.forEach((element) => {
                 if (this.isElementVisible(element)) {
                     this.showElement(element);
                 }
-                else if (this.config.once === false || !element.classList.contains('appear-on-scroll--visible')) {
+                else if (this.config.once === false || !element.classList.contains(constants_1.MODIFIER_CLASS_NAME)) {
                     this.hideElement(element);
                 }
             });
@@ -71,7 +72,8 @@ class AppearOnScroll {
         this.elements = document.querySelectorAll(selector);
         if (this.elements.length) {
             this.hideAllElements();
-            (0, utils_1.addStylesheet)(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+            (0, utils_1.addStylesheet)(`.${constants_1.BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
+            (0, utils_1.addStylesheet)(`.${constants_1.BASE_CLASS_NAME}.${constants_1.MODIFIER_CLASS_NAME}`, this.afterStyleSheet, this.stylesAfterShow);
             window.addEventListener('scroll', this.handleScroll);
             this.handleScroll();
         }

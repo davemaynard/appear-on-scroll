@@ -13,13 +13,10 @@ export const removeStylesheet = (styleSheet: HTMLStyleElement) => {
   document.head.removeChild(styleSheet);
 };
 
-export const addStylesheet = (styleSheet: HTMLStyleElement, stylesBeforeShow: Styles, stylesAfterShow: Styles) => {
+export const addStylesheet = (selector: string, styleSheet: HTMLStyleElement, styles: Styles) => {
   styleSheet.innerHTML = `
-    .appear-on-scroll {
-      ${createCssText(stylesBeforeShow)}
-    }
-    .appear-on-scroll--visible {
-      ${createCssText(stylesAfterShow)}
+    ${selector} {
+      ${createCssText(styles)}
     }
   `;
 

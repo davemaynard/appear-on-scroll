@@ -6,7 +6,8 @@ export declare class AppearOnScroll {
     stylesAfterShow: Partial<Pick<CSSStyleDeclaration, "transition" | "opacity" | "transform">>;
     config: Config;
     elements: NodeListOf<HTMLElement>;
-    styleSheet: HTMLStyleElement;
+    beforeStyleSheet: HTMLStyleElement;
+    afterStyleSheet: HTMLStyleElement;
     showElement: (element: HTMLElement) => void;
     hideElement: (element: HTMLElement) => void;
     hideAllElements: () => void;
