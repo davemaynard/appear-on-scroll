@@ -1,34 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppearOnScroll = void 0;
+const utils_1 = require("./utils");
 const constants_1 = require("./constants");
 class AppearOnScroll {
     constructor(selector, options) {
-        this.prevPageY = window.pageYOffset;
+        this.prevScrollY = window.scrollY;
+        this.isPreviouslyScrollingDown = false;
         this.stylesBeforeShow = constants_1.DEFAULT_STYLES_BEFORE_SHOW;
         this.stylesAfterShow = constants_1.DEFAULT_STYLES_AFTER_SHOW;
         this.config = constants_1.DEFAULT_CONFIG;
+        this.styleSheet = document.createElement('style');
         this.showElement = (element) => {
-            Object.keys(this.stylesAfterShow).forEach((key) => {
-                element.style[key] = this.stylesAfterShow[key];
-            });
             element.classList.add('appear-on-scroll--visible');
         };
         this.hideElement = (element) => {
-            Object.keys(this.stylesBeforeShow).forEach((key) => {
-                element.style[key] = this.stylesBeforeShow[key];
-            });
             element.classList.remove('appear-on-scroll--visible');
         };
         this.hideAllElements = () => {
             this.elements.forEach((element) => {
+                element.classList.add('appear-on-scroll');
                 this.hideElement(element);
             });
         };
         this.isElementVisible = (element) => {
             const windowBounds = {
-                top: window.pageYOffset,
-                bottom: window.pageYOffset + window.innerHeight,
+                top: window.scrollY,
+                bottom: window.scrollY + window.innerHeight,
             };
             const elementRect = element.getBoundingClientRect();
             const elementBounds = {
@@ -39,9 +37,9 @@ class AppearOnScroll {
                 element.style.position === 'fixed');
         };
         this.handleScroll = () => {
-            const isScrollingDown = this.prevPageY < window.pageYOffset;
-            const pageYDiff = Math.abs(this.prevPageY - window.pageYOffset);
-            if (this.config.slide === true) {
+            const isScrollingDown = this.prevScrollY < window.scrollY;
+            const pageYDiff = Math.abs(this.prevScrollY - window.scrollY);
+            if (this.config.slide === true && isScrollingDown !== this.isPreviouslyScrollingDown) {
                 if (pageYDiff > 0) {
                     this.stylesBeforeShow.transform = isScrollingDown
                         ? `translate(0px, ${this.config.slideDistance})`
@@ -50,6 +48,9 @@ class AppearOnScroll {
                 else {
                     this.stylesBeforeShow.transform = constants_1.DEFAULT_STYLES_BEFORE_SHOW.transform;
                 }
+                (0, utils_1.removeStylesheet)(this.styleSheet);
+                (0, utils_1.addStylesheet)(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+                this.isPreviouslyScrollingDown = isScrollingDown;
             }
             this.elements.forEach((element) => {
                 if (this.isElementVisible(element)) {
@@ -59,14 +60,10 @@ class AppearOnScroll {
                     this.hideElement(element);
                 }
             });
-            this.prevPageY = window.pageYOffset;
+            this.prevScrollY = window.scrollY;
         };
         this.config = Object.assign(Object.assign({}, constants_1.DEFAULT_CONFIG), options);
-        this.stylesBeforeShow.transitionTimingFunction = this.config.easing;
-        this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
-        this.stylesAfterShow.transitionDelay = `${this.config.delay}ms`;
-        this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
-        this.stylesAfterShow.transitionTimingFunction = this.config.easing;
+        this.stylesAfterShow.transition = (0, utils_1.createTransitionShorthand)(['opacity', 'transform'], this.config.duration, this.config.delay, this.config.easing);
         if (this.config.slide === false) {
             delete this.stylesBeforeShow.transform;
             delete this.stylesAfterShow.transform;
@@ -74,6 +71,7 @@ class AppearOnScroll {
         this.elements = document.querySelectorAll(selector);
         if (this.elements.length) {
             this.hideAllElements();
+            (0, utils_1.addStylesheet)(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
             window.addEventListener('scroll', this.handleScroll);
             this.handleScroll();
         }

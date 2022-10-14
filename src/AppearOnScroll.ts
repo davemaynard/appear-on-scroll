@@ -1,29 +1,28 @@
-import {DEFAULT_STYLES_BEFORE_SHOW, DEFAULT_STYLES_AFTER_SHOW, DEFAULT_CONFIG} from './constants';
+import {addStylesheet, createTransitionShorthand, removeStylesheet} from './utils';
+import {DEFAULT_CONFIG, DEFAULT_STYLES_AFTER_SHOW, DEFAULT_STYLES_BEFORE_SHOW} from './constants';
 import {Config} from './types';
 
 export class AppearOnScroll {
-  prevPageY = window.scrollY;
+  prevScrollY = window.scrollY;
+  isPreviouslyScrollingDown = false;
   stylesBeforeShow = DEFAULT_STYLES_BEFORE_SHOW;
   stylesAfterShow = DEFAULT_STYLES_AFTER_SHOW;
   config = DEFAULT_CONFIG;
   elements: NodeListOf<HTMLElement>;
+  styleSheet = document.createElement('style');
 
   showElement = (element: HTMLElement) => {
-    Object.keys(this.stylesAfterShow).forEach((key) => {
-      element.style[key] = this.stylesAfterShow[key];
-    });
     element.classList.add('appear-on-scroll--visible');
   };
 
   hideElement = (element: HTMLElement) => {
-    Object.keys(this.stylesBeforeShow).forEach((key) => {
-      element.style[key] = this.stylesBeforeShow[key];
-    });
     element.classList.remove('appear-on-scroll--visible');
   };
 
   hideAllElements = () => {
     this.elements.forEach((element) => {
+      // Upon hiding all elements the first time, apply the default class
+      element.classList.add('appear-on-scroll');
       this.hideElement(element);
     });
   };
@@ -46,10 +45,10 @@ export class AppearOnScroll {
   };
 
   handleScroll = () => {
-    const isScrollingDown = this.prevPageY < window.scrollY;
-    const pageYDiff = Math.abs(this.prevPageY - window.scrollY);
+    const isScrollingDown = this.prevScrollY < window.scrollY;
+    const pageYDiff = Math.abs(this.prevScrollY - window.scrollY);
 
-    if (this.config.slide === true) {
+    if (this.config.slide === true && isScrollingDown !== this.isPreviouslyScrollingDown) {
       if (pageYDiff > 0) {
         this.stylesBeforeShow.transform = isScrollingDown
           ? `translate(0px, ${this.config.slideDistance})`
@@ -57,6 +56,11 @@ export class AppearOnScroll {
       } else {
         this.stylesBeforeShow.transform = DEFAULT_STYLES_BEFORE_SHOW.transform;
       }
+
+      // Replace stylesheet
+      removeStylesheet(this.styleSheet);
+      addStylesheet(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
+      this.isPreviouslyScrollingDown = isScrollingDown;
     }
 
     this.elements.forEach((element) => {
@@ -68,7 +72,7 @@ export class AppearOnScroll {
     });
 
     // Store previous scroll position
-    this.prevPageY = window.scrollY;
+    this.prevScrollY = window.scrollY;
   };
 
   constructor(selector: string, options?: Partial<Config>) {
@@ -79,11 +83,12 @@ export class AppearOnScroll {
     };
 
     // Set transition parameters based on options
-    this.stylesBeforeShow.transitionTimingFunction = this.config.easing;
-    this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
-    this.stylesAfterShow.transitionDelay = `${this.config.delay}ms`;
-    this.stylesAfterShow.transitionDuration = `${this.config.duration}ms`;
-    this.stylesAfterShow.transitionTimingFunction = this.config.easing;
+    this.stylesAfterShow.transition = createTransitionShorthand(
+      ['opacity', 'transform'],
+      this.config.duration,
+      this.config.delay,
+      this.config.easing,
+    );
 
     if (this.config.slide === false) {
       delete this.stylesBeforeShow.transform;
@@ -94,6 +99,8 @@ export class AppearOnScroll {
     if (this.elements.length) {
       // Hide all elements on init
       this.hideAllElements();
+
+      addStylesheet(this.styleSheet, this.stylesBeforeShow, this.stylesAfterShow);
 
       // Attach scroll event listener
       window.addEventListener('scroll', this.handleScroll);

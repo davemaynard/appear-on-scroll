@@ -1,4 +1,4 @@
-export declare type Styles = Partial<CSSStyleDeclaration>;
+export declare type Styles = Partial<Pick<CSSStyleDeclaration, 'transition' | 'opacity' | 'transform'>>;
 export declare type Config = {
     delay: number;
     duration: number;

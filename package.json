@@ -4,6 +4,7 @@
   "description": "Show elements as they enter the browser viewport on scroll.",
   "main": "dist/index.js",
   "scripts": {
+    "clean:dist": "rm -rf dist",
     "build": "tsc",
     "format": "prettier ./src/**/*.ts --write",
     "lint": "eslint ./src/**/*.ts --fix",

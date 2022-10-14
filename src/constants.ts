@@ -1,3 +1,4 @@
+import {createTransitionShorthand} from './utils';
 import {Config, Styles} from './types';
 
 export const DEFAULT_CONFIG: Config = {
@@ -10,19 +11,18 @@ export const DEFAULT_CONFIG: Config = {
 };
 
 export const DEFAULT_STYLES_BEFORE_SHOW: Styles = {
-  transitionProperty: 'none',
-  transitionDuration: '0ms',
-  transitionDelay: '0ms',
-  transitionTimingFunction: DEFAULT_CONFIG.easing,
+  transition: 'none',
   opacity: '0',
   transform: 'translate(0px, 0px)',
 };
 
 export const DEFAULT_STYLES_AFTER_SHOW: Styles = {
-  transitionProperty: 'opacity, transform',
-  transitionDuration: `${DEFAULT_CONFIG.duration}ms`,
-  transitionDelay: `${DEFAULT_CONFIG.delay}ms`,
-  transitionTimingFunction: DEFAULT_CONFIG.easing,
+  transition: createTransitionShorthand(
+    ['opacity', 'transform'],
+    DEFAULT_CONFIG.duration,
+    DEFAULT_CONFIG.delay,
+    DEFAULT_CONFIG.easing,
+  ),
   opacity: '1',
   transform: 'translate(0px, 0px)',
 };

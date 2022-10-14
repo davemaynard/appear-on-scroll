@@ -1,10 +1,12 @@
 import { Config } from './types';
 export declare class AppearOnScroll {
-    prevPageY: number;
-    stylesBeforeShow: Partial<CSSStyleDeclaration>;
-    stylesAfterShow: Partial<CSSStyleDeclaration>;
+    prevScrollY: number;
+    isPreviouslyScrollingDown: boolean;
+    stylesBeforeShow: Partial<Pick<CSSStyleDeclaration, "transition" | "opacity" | "transform">>;
+    stylesAfterShow: Partial<Pick<CSSStyleDeclaration, "transition" | "opacity" | "transform">>;
     config: Config;
     elements: NodeListOf<HTMLElement>;
+    styleSheet: HTMLStyleElement;
     showElement: (element: HTMLElement) => void;
     hideElement: (element: HTMLElement) => void;
     hideAllElements: () => void;
