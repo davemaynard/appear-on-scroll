@@ -1,31 +1,44 @@
-import {createTransitionShorthand} from './utils';
-import {Config, Styles} from './types';
+import {AppearOnScrollOptions, ResolvedOptions} from './types';
 
-export const BASE_CLASS_NAME = 'appear-on-scroll';
-export const MODIFIER_CLASS_NAME = 'appear-on-scroll--visible';
+export const BASE_CLASS = 'appear-on-scroll';
+export const VISIBLE_CLASS = 'appear-on-scroll--visible';
+/** Marker for elements that animate even under prefers-reduced-motion (respectReducedMotion: false). */
+export const MOTION_CLASS = 'appear-on-scroll--motion';
 
-export const DEFAULT_CONFIG: Config = {
+/** Identifies the injected stylesheet, shared by every instance. */
+export const STYLE_ATTRIBUTE = 'data-appear-on-scroll';
+
+/** Starting filter for the blur animation. */
+export const BLUR_FROM = 'blur(12px)';
+
+/** Every inline custom property this library may set on an element. */
+export const INLINE_PROPERTIES = [
+  '--aos-duration',
+  '--aos-delay',
+  '--aos-easing',
+  '--aos-transform-from',
+  '--aos-filter-from',
+] as const;
+
+export const DEFAULTS = {
   delay: 0,
   duration: 600,
   easing: 'cubic-bezier(0.5, 0, 0, 1)',
   once: false,
-  slide: true,
-  slideDistance: '25px',
-};
+  animation: 'slide',
+  direction: 'auto',
+  distance: '25px',
+  scale: 0.95,
+  stagger: 0,
+  threshold: 0,
+  rootMargin: '0px',
+  respectReducedMotion: true,
+} as const satisfies ResolvedOptions;
 
-export const DEFAULT_STYLES_BEFORE_SHOW: Styles = {
-  transition: 'none',
-  opacity: '0',
-  transform: 'translate(0px, 0px)',
-};
-
-export const DEFAULT_STYLES_AFTER_SHOW: Styles = {
-  transition: createTransitionShorthand(
-    ['opacity', 'transform'],
-    DEFAULT_CONFIG.duration,
-    DEFAULT_CONFIG.delay,
-    DEFAULT_CONFIG.easing,
-  ),
-  opacity: '1',
-  transform: 'translate(0px, 0px)',
-};
+export const resolveOptions = (options: AppearOnScrollOptions = {}): ResolvedOptions => ({
+  ...DEFAULTS,
+  ...options,
+  // v1 compatibility: slide: false meant a pure fade, and slideDistance is now distance.
+  animation: options.animation ?? (options.slide === false ? 'fade' : DEFAULTS.animation),
+  distance: options.distance ?? options.slideDistance ?? DEFAULTS.distance,
+});
