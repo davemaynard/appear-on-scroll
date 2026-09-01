@@ -1,118 +1,163 @@
-import {addStylesheet, createTransitionShorthand, removeStylesheet} from './utils';
-import {
-  BASE_CLASS_NAME,
-  DEFAULT_CONFIG,
-  DEFAULT_STYLES_AFTER_SHOW,
-  DEFAULT_STYLES_BEFORE_SHOW,
-  MODIFIER_CLASS_NAME,
-} from './constants';
-import {Config} from './types';
+import {BASE_CLASS, DEFAULTS, BLUR_FROM, INLINE_PROPERTIES, MOTION_CLASS, VISIBLE_CLASS, resolveOptions} from './constants';
+import {acquireStylesheet, releaseStylesheet} from './styles';
+import {AppearOnScrollOptions, ResolvedOptions} from './types';
+
+/** Which side of the viewport an element is (or was last) beyond. */
+type Side = 'above' | 'below';
 
 export class AppearOnScroll {
-  prevScrollY = window.scrollY;
-  isPreviouslyScrollingDown = false;
-  stylesBeforeShow = DEFAULT_STYLES_BEFORE_SHOW;
-  stylesAfterShow = DEFAULT_STYLES_AFTER_SHOW;
-  config = DEFAULT_CONFIG;
-  elements: NodeListOf<HTMLElement>;
-  beforeStyleSheet = document.createElement('style');
-  afterStyleSheet = document.createElement('style');
+  readonly options: ResolvedOptions;
+  readonly elements: HTMLElement[] = [];
 
-  showElement = (element: HTMLElement) => {
-    element.classList.add(MODIFIER_CLASS_NAME);
-  };
+  private observer?: IntersectionObserver;
+  private hasStylesheet = false;
+  private destroyed = false;
 
-  hideElement = (element: HTMLElement) => {
-    element.classList.remove(MODIFIER_CLASS_NAME);
-  };
+  /**
+   * Where each hidden element last sat relative to the viewport. Recorded from
+   * observer entries only — this is what makes direction-aware slides work
+   * without a scroll listener.
+   */
+  private lastSide = new WeakMap<Element, Side>();
 
-  hideAllElements = () => {
-    this.elements.forEach((element) => {
-      // Upon hiding all elements the first time, apply the base class
-      element.classList.add(BASE_CLASS_NAME);
-      this.hideElement(element);
+  constructor(selector: string, options?: AppearOnScrollOptions) {
+    this.options = resolveOptions(options);
+
+    // SSR-safe: only construction touches the DOM, and only when it exists.
+    if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') return;
+
+    this.elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    if (!this.elements.length) return;
+
+    acquireStylesheet();
+    this.hasStylesheet = true;
+
+    this.observer = new IntersectionObserver(this.onIntersect, {
+      threshold: this.options.threshold,
+      rootMargin: this.options.rootMargin,
     });
+
+    for (const element of this.elements) {
+      this.prepare(element);
+      this.observer.observe(element);
+    }
+  }
+
+  /** Disconnect the observer, restore every element, and drop the injected styles. */
+  destroy = (): void => {
+    if (this.destroyed) return;
+    this.destroyed = true;
+
+    this.observer?.disconnect();
+    this.observer = undefined;
+
+    for (const element of this.elements) {
+      element.classList.remove(BASE_CLASS, VISIBLE_CLASS, MOTION_CLASS);
+      for (const property of INLINE_PROPERTIES) {
+        element.style.removeProperty(property);
+      }
+    }
+
+    if (this.hasStylesheet) {
+      this.hasStylesheet = false;
+      releaseStylesheet();
+    }
   };
 
-  isElementVisible = (element: HTMLElement) => {
-    const windowBounds = {
-      top: window.scrollY,
-      bottom: window.scrollY + window.innerHeight,
-    };
-    const elementRect = element.getBoundingClientRect();
-    const elementBounds = {
-      top: elementRect.top + windowBounds.top,
-      bottom: elementRect.top + windowBounds.top + elementRect.height,
-    };
+  /** Hide the element and write its animation settings as inline custom properties. */
+  private prepare(element: HTMLElement): void {
+    const {delay, duration, easing, animation, scale, respectReducedMotion} = this.options;
 
-    return (
-      (elementBounds.top < windowBounds.bottom && elementBounds.bottom > windowBounds.top) ||
-      element.style.position === 'fixed'
-    );
-  };
+    element.classList.add(BASE_CLASS);
+    if (!respectReducedMotion) element.classList.add(MOTION_CLASS);
 
-  handleScroll = () => {
-    const isScrollingDown = this.prevScrollY < window.scrollY;
-    const pageYDiff = Math.abs(this.prevScrollY - window.scrollY);
+    // The stylesheet carries the defaults; only differences go inline.
+    if (duration !== DEFAULTS.duration) element.style.setProperty('--aos-duration', `${duration}ms`);
+    if (delay !== DEFAULTS.delay) element.style.setProperty('--aos-delay', `${delay}ms`);
+    if (easing !== DEFAULTS.easing) element.style.setProperty('--aos-easing', easing);
 
-    if (this.config.slide === true && isScrollingDown !== this.isPreviouslyScrollingDown) {
-      if (pageYDiff > 0) {
-        this.stylesBeforeShow.transform = isScrollingDown
-          ? `translate(0px, ${this.config.slideDistance})`
-          : `translate(0px, -${this.config.slideDistance})`;
+    if (animation === 'zoom') element.style.setProperty('--aos-transform-from', `scale(${scale})`);
+    if (animation === 'blur') element.style.setProperty('--aos-filter-from', BLUR_FROM);
+    if (animation === 'slide') this.setTransformFrom(element, this.slideFrom('below'));
+  }
+
+  private onIntersect = (entries: IntersectionObserverEntry[]): void => {
+    let batchIndex = 0;
+
+    for (const entry of entries) {
+      const element = entry.target as HTMLElement;
+
+      if (entry.isIntersecting) {
+        this.reveal(element, entry, batchIndex++);
+        if (this.options.once) this.observer?.unobserve(element);
       } else {
-        this.stylesBeforeShow.transform = DEFAULT_STYLES_BEFORE_SHOW.transform;
+        this.lastSide.set(element, this.offscreenSide(entry));
+        if (!this.options.once) element.classList.remove(VISIBLE_CLASS);
       }
-
-      // Replace stylesheet
-      removeStylesheet(this.beforeStyleSheet);
-      addStylesheet(`.${BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
-      this.isPreviouslyScrollingDown = isScrollingDown;
     }
-
-    this.elements.forEach((element) => {
-      if (this.isElementVisible(element)) {
-        this.showElement(element);
-      } else if (this.config.once === false || !element.classList.contains(MODIFIER_CLASS_NAME)) {
-        this.hideElement(element);
-      }
-    });
-
-    // Store previous scroll position
-    this.prevScrollY = window.scrollY;
   };
 
-  constructor(selector: string, options?: Partial<Config>) {
-    // Immediately override any of the default config with options
-    this.config = {
-      ...DEFAULT_CONFIG,
-      ...options,
-    };
+  private reveal(element: HTMLElement, entry: IntersectionObserverEntry, batchIndex: number): void {
+    const {animation, direction, delay, stagger} = this.options;
 
-    // Set transition parameters based on options
-    this.stylesAfterShow.transition = createTransitionShorthand(
-      ['opacity', 'transform'],
-      this.config.duration,
-      this.config.delay,
-      this.config.easing,
-    );
-
-    if (this.config.slide === false) {
-      delete this.stylesBeforeShow.transform;
-      delete this.stylesAfterShow.transform;
+    if (animation === 'slide' && direction === 'auto') {
+      this.setTransformFrom(element, this.slideFrom(this.entrySide(entry)));
     }
 
-    this.elements = document.querySelectorAll(selector);
-    if (this.elements.length) {
-      // Hide all elements on init
-      this.hideAllElements();
-
-      addStylesheet(`.${BASE_CLASS_NAME}`, this.beforeStyleSheet, this.stylesBeforeShow);
-      addStylesheet(`.${BASE_CLASS_NAME}.${MODIFIER_CLASS_NAME}`, this.afterStyleSheet, this.stylesAfterShow);
-
-      // Attach scroll event listener
-      window.addEventListener('scroll', this.handleScroll);
-      this.handleScroll();
+    if (stagger > 0) {
+      element.style.setProperty('--aos-delay', `${delay + batchIndex * stagger}ms`);
     }
+
+    element.classList.add(VISIBLE_CLASS);
+  }
+
+  /**
+   * Which edge the element is entering through, straight from the observer
+   * entry: an element straddling the viewport's top edge is arriving from
+   * above (the user is scrolling up), one straddling the bottom edge is
+   * arriving from below. An element already fully inside the viewport (a
+   * jump scroll, or the initial load) falls back to the side it was last
+   * seen beyond.
+   */
+  private entrySide(entry: IntersectionObserverEntry): Side {
+    const rect = entry.boundingClientRect;
+    if (rect.top < this.rootTop(entry)) return 'above';
+    if (rect.bottom > this.rootBottom(entry)) return 'below';
+    return this.lastSide.get(entry.target) ?? 'below';
+  }
+
+  /** Which side a non-intersecting element sits on. */
+  private offscreenSide(entry: IntersectionObserverEntry): Side {
+    return entry.boundingClientRect.bottom <= this.rootTop(entry) ? 'above' : 'below';
+  }
+
+  private rootTop(entry: IntersectionObserverEntry): number {
+    return entry.rootBounds?.top ?? 0;
+  }
+
+  private rootBottom(entry: IntersectionObserverEntry): number {
+    return entry.rootBounds?.bottom ?? window.innerHeight;
+  }
+
+  /** The hidden-state transform for a slide arriving from the given side. */
+  private slideFrom(side: Side): string {
+    const {direction, distance} = this.options;
+    const away = `calc(${distance} * -1)`;
+
+    if (direction === 'left') return `translate3d(${distance}, 0, 0)`;
+    if (direction === 'right') return `translate3d(${away}, 0, 0)`;
+    if (direction === 'up' || (direction === 'auto' && side === 'below')) return `translate3d(0, ${distance}, 0)`;
+    return `translate3d(0, ${away}, 0)`;
+  }
+
+  /**
+   * Update the hidden-state transform, forcing a style flush so the browser
+   * commits the new starting point before the visible class lands — otherwise
+   * the transition would begin from the previous edge.
+   */
+  private setTransformFrom(element: HTMLElement, value: string): void {
+    if (element.style.getPropertyValue('--aos-transform-from') === value) return;
+    element.style.setProperty('--aos-transform-from', value);
+    void element.offsetWidth;
   }
 }
