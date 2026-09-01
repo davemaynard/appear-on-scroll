@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>appear-on-scroll — demo</title>
+    <style>
+      :root {
+        --bg: #0e1116;
+        --surface: #161b23;
+        --border: #232b37;
+        --text: #e6ebf2;
+        --muted: #8b96a5;
+        --accent: #6ea8fe;
+        --accent-2: #9d8cff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      .hero {
+        min-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      .hero h1 span {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero p {
+        color: var(--muted);
+        max-width: 46ch;
+        margin: 0;
+      }
+
+      .hero .hint {
+        margin-top: 32px;
+        font-size: 0.85rem;
+        color: var(--accent);
+      }
+
+      section {
+        padding: 22vh 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 4px;
+      }
+
+      section h2 {
+        margin: 0 0 6px;
+        font-size: 1.6rem;
+        letter-spacing: -0.01em;
+      }
+
+      section > p {
+        color: var(--muted);
+        margin: 0 0 40px;
+        max-width: 60ch;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+      }
+
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+      }
+
+      .row + .row {
+        margin-top: 16px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .grid .card {
+        aspect-ratio: 4 / 3;
+        display: flex;
+        align-items: flex-end;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      code {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 0.85em;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 48px 0 64px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      footer a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="label">appear-on-scroll v2</p>
+        <h1>Elements that <span>arrive</span> with the scroll.</h1>
+        <p>
+          IntersectionObserver-based reveals with a scroll-direction-aware slide: scroll down and things rise into
+          place, scroll back up and they settle down from above. Zero dependencies.
+        </p>
+        <p class="hint">Scroll to see each animation — then scroll back up.</p>
+      </header>
+
+      <section id="slide">
+        <p class="label">The signature</p>
+        <h2>Direction-aware slide</h2>
+        <p>
+          <code>animation: 'slide'</code> with <code>direction: 'auto'</code> (the defaults). These cards slide
+          <em>up</em> into place as you scroll down, and slide <em>down</em> into place when you scroll back up to
+          them. No scroll listener involved — the observer entry tells us which edge each element crossed.
+        </p>
+        <div class="row">
+          <div class="card" data-slide id="dir-el">
+            <h3>Watch me twice</h3>
+            <p>Pass me going down, then come back up. I arrive from whichever side you approached.</p>
+          </div>
+          <div class="card" data-slide>
+            <h3>Same batch</h3>
+            <p>Everything in a section follows the same scroll direction.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="directions">
+        <p class="label">Pinned directions</p>
+        <h2>direction: up · down · left · right</h2>
+        <p>Set an explicit <code>direction</code> and the slide ignores scroll direction entirely.</p>
+        <div class="row">
+          <div class="card" data-dir-up><h3>up</h3><p>Rises from below.</p></div>
+          <div class="card" data-dir-down><h3>down</h3><p>Drops from above.</p></div>
+          <div class="card" data-dir-left><h3>left</h3><p>Slides in from the right.</p></div>
+          <div class="card" data-dir-right><h3>right</h3><p>Slides in from the left.</p></div>
+        </div>
+      </section>
+
+      <section id="fade">
+        <p class="label">Animation: fade</p>
+        <h2>Pure fade</h2>
+        <p><code>animation: 'fade'</code> — or the v1 spelling, <code>slide: false</code>. No movement, just opacity.</p>
+        <div class="row">
+          <div class="card" data-fade id="fade-el">
+            <h3>Fade</h3>
+            <p>The quiet option.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="zoom">
+        <p class="label">Animation: zoom</p>
+        <h2>Zoom</h2>
+        <p><code>animation: 'zoom', scale: 0.9</code> — scales up to full size while fading in.</p>
+        <div class="row">
+          <div class="card" data-zoom>
+            <h3>Zoom</h3>
+            <p>Starts at 90% scale.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="blur">
+        <p class="label">Animation: blur</p>
+        <h2>Blur</h2>
+        <p><code>animation: 'blur'</code> — sharpens into focus while fading in.</p>
+        <div class="row">
+          <div class="card" data-blur>
+            <h3>Blur</h3>
+            <p>From soft focus to sharp.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="stagger">
+        <p class="label">Stagger</p>
+        <h2>Stagger grid</h2>
+        <p>
+          <code>stagger: 90</code> — elements revealed in the same observer batch each wait 90ms longer than the one
+          before, so a grid cascades instead of popping in at once.
+        </p>
+        <div class="grid">
+          <div class="card stagger-cell">01</div>
+          <div class="card stagger-cell">02</div>
+          <div class="card stagger-cell">03</div>
+          <div class="card stagger-cell">04</div>
+          <div class="card stagger-cell">05</div>
+          <div class="card stagger-cell">06</div>
+          <div class="card stagger-cell">07</div>
+          <div class="card stagger-cell">08</div>
+          <div class="card stagger-cell">09</div>
+        </div>
+      </section>
+
+      <section id="once">
+        <p class="label">Replay</p>
+        <h2>once: false vs once: true</h2>
+        <p>
+          By default elements hide again when they leave the viewport and replay on re-entry. With
+          <code>once: true</code> the first appearance sticks.
+        </p>
+        <div class="row">
+          <div class="card" data-again id="again-el">
+            <h3>once: false</h3>
+            <p>Scroll away and back — I replay every time.</p>
+          </div>
+          <div class="card" data-once id="once-el">
+            <h3>once: true</h3>
+            <p>I appear once and never hide again.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          appear-on-scroll v2 · zero dependencies · respects <code>prefers-reduced-motion</code> ·
+          <a href="https://github.com/davemaynard/appear-on-scroll">GitHub</a>
+        </p>
+      </footer>
+    </main>
+
+    <script type="module">
+      import {AppearOnScroll} from '../dist/index.js';
+
+      const instances = [
+        new AppearOnScroll('[data-slide]', {duration: 900}),
+        new AppearOnScroll('[data-dir-up]', {direction: 'up'}),
+        new AppearOnScroll('[data-dir-down]', {direction: 'down'}),
+        new AppearOnScroll('[data-dir-left]', {direction: 'left', distance: '40px'}),
+        new AppearOnScroll('[data-dir-right]', {direction: 'right', distance: '40px'}),
+        new AppearOnScroll('[data-fade]', {animation: 'fade'}),
+        new AppearOnScroll('[data-zoom]', {animation: 'zoom', scale: 0.9}),
+        new AppearOnScroll('[data-blur]', {animation: 'blur'}),
+        new AppearOnScroll('.stagger-cell', {stagger: 90, duration: 500}),
+        new AppearOnScroll('[data-again]', {once: false}),
+        new AppearOnScroll('[data-once]', {once: true}),
+      ];
+
+      // Test hook: lets the Playwright suite call destroy() on everything.
+      window.__aosInstances = instances;
+    </script>
+  </body>
+</html>
