@@ -101,6 +101,11 @@
         text-decoration: none;
       }
 
+      .top .links {
+        display: flex;
+        gap: 20px;
+      }
+
       .hero {
         position: relative;
         /* Fill the first screen minus the bar above it, using the small viewport
@@ -273,6 +278,14 @@
         grid-template-columns: minmax(0, 420px);
       }
 
+      /* The left and right examples travel 40px sideways while hidden. On a phone
+         the cards are full width, so that travel would reach past the viewport and
+         give the page a horizontal scrollbar. Clip contains it without creating a
+         scroll container, so the slide still reads as arriving from the edge. */
+      #directions .row {
+        overflow-x: clip;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -329,6 +342,11 @@
         margin: 0;
       }
 
+      footer > div {
+        display: grid;
+        gap: 6px;
+      }
+
       @media (max-width: 640px) {
         section {
           padding: 18vh 0;
@@ -356,7 +374,10 @@
     <main>
       <nav class="top" aria-label="Site">
         <a class="name" href="./">appear-on-scroll</a>
-        <a href="https://github.com/davemaynard/appear-on-scroll">GitHub</a>
+        <span class="links">
+          <a href="https://www.npmjs.com/package/appear-on-scroll">npm</a>
+          <a href="https://github.com/davemaynard/appear-on-scroll">GitHub</a>
+        </span>
       </nav>
 
       <header class="hero">
@@ -484,7 +505,10 @@
       </section>
 
       <footer>
-        <p>Zero dependencies. Under 3 KB gzipped. Honours <code>prefers-reduced-motion</code>.</p>
+        <div>
+          <p>Zero dependencies. Under 3 KB gzipped. Honours <code>prefers-reduced-motion</code>.</p>
+          <p>npm still carries the 1.x line, which has a different API. Version 2 builds from source.</p>
+        </div>
         <p>Built by <a href="https://davemaynard.dev">Dave Maynard</a></p>
       </footer>
     </main>
