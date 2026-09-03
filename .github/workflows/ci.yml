@@ -15,7 +15,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx prettier --check "src/**/*.ts" "test/**/*.mjs" "demo/**/*.html"
+      - run: npx prettier --check "src/**/*.ts" "test/**/*.mjs" "scripts/**/*.mjs" "demo/**/*.html"
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
       - run: npm test
+      # docs/ is the published demo. Regenerate it and fail if it drifted from source.
+      - run: npm run build:docs
+      - run: git diff --exit-code -- docs
