@@ -1,12 +1,19 @@
 # appear-on-scroll
 
-Reveal elements as they enter the viewport — with a slide that knows which way you're scrolling. Scroll down and elements rise into place from below; scroll back up and they settle down from above. Built on `IntersectionObserver` — zero dependencies, no per-scroll work, about 2.6 KB gzipped.
+Reveal elements as they enter the viewport — with a slide that knows which way you're scrolling. Scroll down and elements rise into place from below; scroll back up and they settle down from above. Built on `IntersectionObserver` — zero dependencies, no per-scroll work, about 2.9 KB gzipped.
 
 ## Install
 
+Version 2 is not on npm yet — `npm install appear-on-scroll` still resolves to the 1.x
+line, which has a different API. Until it is published, use it from source:
+
 ```
-npm install appear-on-scroll
+git clone https://github.com/davemaynard/appear-on-scroll.git
+cd appear-on-scroll && npm install && npm run build
 ```
+
+That writes `dist/index.js` (ESM) and `dist/index.cjs`, which you can copy or link into
+your project.
 
 ## Quick start
 
@@ -28,14 +35,17 @@ new AppearOnScroll('.card', {
 });
 ```
 
-No build step? Load it straight from a CDN in a module script:
+No build step? Point a module script at the built file:
 
 ```html
 <script type="module">
-  import {AppearOnScroll} from 'https://esm.sh/appear-on-scroll@2';
+  import {AppearOnScroll} from './dist/index.js';
   new AppearOnScroll('.reveal');
 </script>
 ```
+
+Once 2.0.0 is on npm the same import works from a CDN as
+`https://esm.sh/appear-on-scroll@2`.
 
 A full showcase lives in [`demo/index.html`](demo/index.html) — every animation type, a stagger grid, and the replay behavior.
 

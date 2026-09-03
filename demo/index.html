@@ -23,7 +23,12 @@
         margin: 0;
         background: var(--bg);
         color: var(--text);
-        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
         line-height: 1.6;
       }
 
@@ -172,8 +177,8 @@
         <h2>Direction-aware slide</h2>
         <p>
           <code>animation: 'slide'</code> with <code>direction: 'auto'</code> (the defaults). These cards slide
-          <em>up</em> into place as you scroll down, and slide <em>down</em> into place when you scroll back up to
-          them. No scroll listener involved — the observer entry tells us which edge each element crossed.
+          <em>up</em> into place as you scroll down, and slide <em>down</em> into place when you scroll back up to them.
+          No scroll listener involved — the observer entry tells us which edge each element crossed.
         </p>
         <div class="row">
           <div class="card" data-slide id="dir-el">
@@ -192,17 +197,31 @@
         <h2>direction: up · down · left · right</h2>
         <p>Set an explicit <code>direction</code> and the slide ignores scroll direction entirely.</p>
         <div class="row">
-          <div class="card" data-dir-up><h3>up</h3><p>Rises from below.</p></div>
-          <div class="card" data-dir-down><h3>down</h3><p>Drops from above.</p></div>
-          <div class="card" data-dir-left><h3>left</h3><p>Slides in from the right.</p></div>
-          <div class="card" data-dir-right><h3>right</h3><p>Slides in from the left.</p></div>
+          <div class="card" data-dir-up>
+            <h3>up</h3>
+            <p>Rises from below.</p>
+          </div>
+          <div class="card" data-dir-down>
+            <h3>down</h3>
+            <p>Drops from above.</p>
+          </div>
+          <div class="card" data-dir-left>
+            <h3>left</h3>
+            <p>Slides in from the right.</p>
+          </div>
+          <div class="card" data-dir-right>
+            <h3>right</h3>
+            <p>Slides in from the left.</p>
+          </div>
         </div>
       </section>
 
       <section id="fade">
         <p class="label">Animation: fade</p>
         <h2>Pure fade</h2>
-        <p><code>animation: 'fade'</code> — or the v1 spelling, <code>slide: false</code>. No movement, just opacity.</p>
+        <p>
+          <code>animation: 'fade'</code> — or the v1 spelling, <code>slide: false</code>. No movement, just opacity.
+        </p>
         <div class="row">
           <div class="card" data-fade id="fade-el">
             <h3>Fade</h3>

@@ -1,7 +1,10 @@
 import {BASE_CLASS, DEFAULTS, MOTION_CLASS, STYLE_ATTRIBUTE, VISIBLE_CLASS} from './constants';
 
 const transition = ['opacity', 'transform', 'filter']
-  .map((property) => `${property} var(--aos-duration, ${DEFAULTS.duration}ms) var(--aos-easing, ${DEFAULTS.easing}) var(--aos-delay, 0ms)`)
+  .map(
+    (property) =>
+      `${property} var(--aos-duration, ${DEFAULTS.duration}ms) var(--aos-easing, ${DEFAULTS.easing}) var(--aos-delay, 0ms)`,
+  )
   .join(',\n    ');
 
 /**

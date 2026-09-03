@@ -35,9 +35,22 @@ export const DEFAULTS = {
   respectReducedMotion: true,
 } as const satisfies ResolvedOptions;
 
+/**
+ * Callers forward props they may not have — `{once: props.once}` passes an explicit
+ * `undefined`, and a plain spread would overwrite the default with it. Dropping
+ * undefined-valued keys first means an absent option and an unset one agree.
+ */
+const defined = <T extends object>(options: T): Partial<T> => {
+  const out: Partial<T> = {};
+  for (const key of Object.keys(options) as (keyof T)[]) {
+    if (options[key] !== undefined) out[key] = options[key];
+  }
+  return out;
+};
+
 export const resolveOptions = (options: AppearOnScrollOptions = {}): ResolvedOptions => ({
   ...DEFAULTS,
-  ...options,
+  ...defined(options),
   // v1 compatibility: slide: false meant a pure fade, and slideDistance is now distance.
   animation: options.animation ?? (options.slide === false ? 'fade' : DEFAULTS.animation),
   distance: options.distance ?? options.slideDistance ?? DEFAULTS.distance,

@@ -46,18 +46,22 @@ const assert = (name, condition, detail = '') => {
 };
 
 const VISIBLE = 'appear-on-scroll--visible';
+
+// setContent pages have no origin, so they cannot import a module by URL.
+// Inject the same built file as a global instead.
+const libraryGlobal = (await readFile(join(root, 'dist/index.js'), 'utf8')).replace(
+  /export\s*\{[^}]*\}\s*;?/g,
+  'window.AppearOnScroll = AppearOnScroll;',
+);
 const page = await browser.newPage({viewport: {width: 1000, height: 700}});
 await page.goto(demoUrl);
 await page.waitForSelector('#dir-el.appear-on-scroll', {state: 'attached'});
 
-const style = (selector, property) =>
-  page.$eval(selector, (el, property) => getComputedStyle(el)[property], property);
-const inlineVar = (selector, name) =>
-  page.$eval(selector, (el, name) => el.style.getPropertyValue(name), name);
+const style = (selector, property) => page.$eval(selector, (el, property) => getComputedStyle(el)[property], property);
+const inlineVar = (selector, name) => page.$eval(selector, (el, name) => el.style.getPropertyValue(name), name);
 const hasClass = (selector, className) =>
   page.$eval(selector, (el, className) => el.classList.contains(className), className);
-const scrollToCenter = (selector) =>
-  page.$eval(selector, (el) => el.scrollIntoView({block: 'center'}));
+const scrollToCenter = (selector) => page.$eval(selector, (el) => el.scrollIntoView({block: 'center'}));
 // Resolves with the element's computed transform captured in the same style
 // pass that first sees the visible class — i.e. the transition's start.
 const transformAtReveal = (selector) =>
@@ -86,15 +90,15 @@ const downStart = await reveal;
 await page.waitForFunction(() => getComputedStyle(document.querySelector('#dir-el')).opacity === '1');
 assert('#dir-el gains the visible class', await hasClass('#dir-el', VISIBLE));
 assert('#dir-el computed opacity reaches 1', (await style('#dir-el', 'opacity')) === '1');
-assert('start transform is from below', (await inlineVar('#dir-el', '--aos-transform-from')) === 'translate3d(0, 25px, 0)');
+assert(
+  'start transform is from below',
+  (await inlineVar('#dir-el', '--aos-transform-from')) === 'translate3d(0, 25px, 0)',
+);
 assert('transition begins with positive translateY', translateY(downStart) > 5, `matrix: ${downStart}`);
 
 console.log('\nscrolling back up reveals the other way');
 await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-await page.waitForFunction(
-  (VISIBLE) => !document.querySelector('#dir-el').classList.contains(VISIBLE),
-  VISIBLE,
-);
+await page.waitForFunction((VISIBLE) => !document.querySelector('#dir-el').classList.contains(VISIBLE), VISIBLE);
 reveal = transformAtReveal('#dir-el');
 // Jump so #dir-el straddles the viewport's top edge — a scroll-up entry.
 await page.$eval('#dir-el', (el) => {
@@ -140,6 +144,88 @@ assert('below-fold element is immediately visible', reduced.opacity === '1');
 assert('no starting transform', reduced.transform === 'none');
 assert('no transition', reduced.duration === '0s', `duration: ${reduced.duration}`);
 await reducedPage.close();
+
+// Two regressions the demo page cannot show, because it only ever jump-scrolls
+// and always passes a fully-populated options object.
+console.log('\nreduced motion is not defeated by an explicitly-undefined option');
+const undefinedOptionPage = await browser.newPage({viewport: {width: 800, height: 600}});
+await undefinedOptionPage.emulateMedia({reducedMotion: 'reduce'});
+await undefinedOptionPage.setContent('<style>body{margin:0}</style><div id="u">x</div>');
+await undefinedOptionPage.addScriptTag({content: libraryGlobal});
+const undefinedOption = await undefinedOptionPage.evaluate(() => {
+  new window.AppearOnScroll('#u', {respectReducedMotion: undefined});
+  const el = document.getElementById('u');
+  return {opacity: getComputedStyle(el).opacity, optedOut: el.classList.contains('appear-on-scroll--motion')};
+});
+assert(
+  'a caller forwarding an absent prop still gets reduced motion',
+  undefinedOption.opacity === '1',
+  `opacity: ${undefinedOption.opacity}`,
+);
+assert('the motion opt-out class is not applied', undefinedOption.optedOut === false);
+await undefinedOptionPage.close();
+
+console.log('\nstagger is a property of the wave, not of the observer batch');
+// The observer decides how many entries ride in one callback, and that depends on
+// scroll speed. Reveals that happen in quick succession are one wave to the eye,
+// so the cascade must continue across callbacks rather than restart in each.
+const wavePage = await browser.newPage({viewport: {width: 800, height: 400}});
+await wavePage.setContent(
+  '<style>body{margin:0}.s{height:40px}</style><div style="height:500px"></div>' +
+    Array.from({length: 6}, (_, i) => `<div class="s" id="s${i}"></div>`).join('') +
+    '<div style="height:800px"></div>',
+);
+await wavePage.addScriptTag({content: libraryGlobal});
+await wavePage.evaluate(() => new window.AppearOnScroll('.s', {stagger: 90, once: true}));
+// Two nudges 20ms apart: two observer callbacks, one wave as far as the eye is concerned.
+await wavePage.evaluate(() => window.scrollTo(0, 240));
+await wavePage.waitForTimeout(20);
+await wavePage.evaluate(() => window.scrollTo(0, 400));
+await wavePage.waitForTimeout(400);
+const wave = await wavePage.evaluate(() =>
+  [...document.querySelectorAll('.s')].map((el) => ({
+    revealed: el.classList.contains('appear-on-scroll--visible'),
+    delay: Number.parseInt(el.style.getPropertyValue('--aos-delay') || '0', 10),
+  })),
+);
+await wavePage.close();
+const waveDelays = wave.map((s) => s.delay);
+assert(
+  'all six reveal',
+  wave.every((s) => s.revealed),
+  JSON.stringify(wave),
+);
+assert(
+  'the cascade keeps climbing across callbacks instead of restarting',
+  waveDelays.join() === '0,90,180,270,360,450',
+  waveDelays.join(),
+);
+
+console.log('\nreveals that are genuinely apart start a fresh cascade');
+const apartPage = await browser.newPage({viewport: {width: 800, height: 400}});
+await apartPage.setContent(
+  '<style>body{margin:0}.s{height:40px}</style><div style="height:500px"></div>' +
+    Array.from({length: 3}, (_, i) => `<div class="s" id="a${i}" style="margin-bottom:500px"></div>`).join('') +
+    '<div style="height:800px"></div>',
+);
+await apartPage.addScriptTag({content: libraryGlobal});
+await apartPage.evaluate(() => new window.AppearOnScroll('.s', {stagger: 90, once: true}));
+for (const y of [500, 1050, 1600]) {
+  await apartPage.evaluate((to) => window.scrollTo(0, to), y);
+  await apartPage.waitForTimeout(250);
+}
+await apartPage.waitForTimeout(300);
+const apart = await apartPage.evaluate(() =>
+  [...document.querySelectorAll('.s')].map((el) =>
+    Number.parseInt(el.style.getPropertyValue('--aos-delay') || '0', 10),
+  ),
+);
+await apartPage.close();
+assert(
+  'an element arriving alone is not made to wait',
+  apart.every((d) => d === 0),
+  apart.join(),
+);
 
 console.log('\ndestroy() restores everything');
 await page.evaluate(() => window.__aosInstances.forEach((instance) => instance.destroy()));
