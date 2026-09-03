@@ -2,6 +2,12 @@
 
 Reveal elements as they enter the viewport — with a slide that knows which way you're scrolling. Scroll down and elements rise into place from below; scroll back up and they settle down from above. Built on `IntersectionObserver` — zero dependencies, no per-scroll work, about 2.9 KB gzipped.
 
+<a href="https://davemaynard.github.io/appear-on-scroll">
+  <img src="docs/demo.gif" width="720" alt="Scrolling down a dark demo page: cards rise into place from below, a nine-cell grid cascades one cell at a time, then scrolling back up the same cards settle down from above">
+</a>
+
+**[Try it →](https://davemaynard.github.io/appear-on-scroll)**
+
 ## Install
 
 Version 2 is not on npm yet — `npm install appear-on-scroll` still resolves to the 1.x
@@ -47,7 +53,7 @@ No build step? Point a module script at the built file:
 Once 2.0.0 is on npm the same import works from a CDN as
 `https://esm.sh/appear-on-scroll@2`.
 
-A full showcase lives in [`demo/index.html`](demo/index.html) — every animation type, a stagger grid, and the replay behavior.
+**[See it running →](https://davemaynard.github.io/appear-on-scroll)** — every animation type, a stagger grid, and the replay behaviour. The page source is [`demo/index.html`](demo/index.html).
 
 ## The direction-aware slide
 
