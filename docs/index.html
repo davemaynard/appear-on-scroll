@@ -55,6 +55,81 @@
         color: var(--text);
       }
 
+      /* This page is about scrolling, so the thing you are moving should be
+         visible and take the page's colours rather than the browser's. Styling
+         these pseudo-elements also opts Chromium out of overlay scrollbars, so
+         the bar holds its own column instead of floating over the content and
+         fading away. Firefox takes the two-value form below. */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--surface);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #3c4552;
+        border-radius: var(--r-sm);
+        border: 2px solid var(--surface);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent);
+      }
+
+      @supports not selector(::-webkit-scrollbar) {
+        html {
+          scrollbar-width: thin;
+          scrollbar-color: #3c4552 var(--surface);
+        }
+      }
+
+      /* macOS hides the real scrollbar until you scroll, and never shows it in a
+         screen capture, so the page carries its own position marker. It rides a
+         scroll timeline rather than a scroll listener: no JavaScript, and none of
+         the per-frame work this library exists to avoid. Browsers without scroll
+         timelines get nothing, which is why the rail is hidden by default. */
+      .rail {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 5;
+        width: 5px;
+        height: 100vh;
+        height: 100dvh;
+        background: var(--border);
+      }
+
+      .rail span {
+        display: block;
+        width: 100%;
+        height: 56px;
+        border-radius: var(--r-sm);
+        background: var(--accent);
+      }
+
+      @supports (animation-timeline: scroll()) {
+        .rail {
+          display: block;
+        }
+
+        .rail span {
+          animation: rail linear;
+          animation-timeline: scroll(root block);
+        }
+      }
+
+      @keyframes rail {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(calc(100dvh - 56px));
+        }
+      }
+
       a {
         color: var(--text);
         text-decoration-thickness: 1px;
@@ -371,6 +446,8 @@
     </style>
   </head>
   <body>
+    <div class="rail" aria-hidden="true"><span></span></div>
+
     <main>
       <nav class="top" aria-label="Site">
         <a class="name" href="./">appear-on-scroll</a>
