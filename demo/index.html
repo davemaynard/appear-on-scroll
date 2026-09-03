@@ -4,15 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>appear-on-scroll — demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #0e1116;
-        --surface: #161b23;
-        --border: #232b37;
-        --text: #e6ebf2;
-        --muted: #8b96a5;
-        --accent: #6ea8fe;
-        --accent-2: #9d8cff;
+        --bg: #0d1014;
+        --surface: #14181e;
+        --border: #222831;
+        --text: #e8ebef;
+        --muted: #8a929d;
+        /* One accent for the whole page: warm, against a cool near-black. */
+        --accent: #d9944a;
+        /* Two radii, and only two: hairlines and cards. */
+        --r-sm: 3px;
+        --r: 8px;
       }
 
       * {
@@ -24,12 +33,13 @@
         background: var(--bg);
         color: var(--text);
         font-family:
+          'Geist',
           ui-sans-serif,
           system-ui,
           -apple-system,
-          'Segoe UI',
           sans-serif;
         line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
       }
 
       main {
@@ -39,6 +49,7 @@
       }
 
       .hero {
+        position: relative;
         min-height: 92vh;
         display: flex;
         flex-direction: column;
@@ -46,17 +57,95 @@
         gap: 12px;
       }
 
-      .hero h1 {
-        font-size: clamp(2.4rem, 6vw, 4rem);
-        margin: 0;
-        letter-spacing: -0.02em;
+      /* The tease: an invitation to scroll, anchored to the foot of the first
+         screen. It nudges down and then rests, rather than metronoming, so it
+         reads as a gesture rather than a loading indicator. */
+      .tease {
+        position: absolute;
+        bottom: 4vh;
+        left: 50%;
+        transform: translateX(-50%);
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 999px;
+        color: var(--accent);
+        cursor: pointer;
       }
 
-      .hero h1 span {
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+      .tease:hover .chevron,
+      .tease:focus-visible .chevron {
+        opacity: 1;
+      }
+
+      .tease:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .tease:active .bob {
+        transform: translateY(6px);
+      }
+
+      .bob {
+        display: block;
+        animation: bob 1.5s ease-in-out infinite;
+      }
+
+      .chevron {
+        display: block;
+        width: 13px;
+        height: 13px;
+        margin-top: -5px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+        opacity: 0.75;
+        transition: opacity 0.2s ease;
+      }
+
+      @keyframes bob {
+        0% {
+          transform: translateY(0);
+        }
+        45% {
+          transform: translateY(8px);
+        }
+        70%,
+        100% {
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bob {
+          animation: none;
+        }
+      }
+
+      .hero h1 {
+        font-size: clamp(2.2rem, 5.2vw, 3.5rem);
+        font-weight: 600;
+        /* Display type sets its own leading; the body's 1.6 leaves headlines
+           floating apart. 1.08 still clears the italic's descenders. */
+        line-height: 1.08;
+        margin: 0;
+        letter-spacing: -0.028em;
+        max-width: 18ch;
+      }
+
+      /* Emphasis inside a headline belongs to the same typeface. Italic reads as
+         intent; a gradient fill reads as decoration looking for a job. */
+      .hero h1 em {
+        font-style: italic;
+        font-weight: 500;
+        /* Descender clearance, so the italic never clips against tight leading. */
+        line-height: 1.1;
+        padding-bottom: 0.06em;
       }
 
       .hero p {
@@ -66,9 +155,10 @@
       }
 
       .hero .hint {
-        margin-top: 32px;
+        margin-top: 28px;
         font-size: 0.85rem;
-        color: var(--accent);
+        color: var(--muted);
+        opacity: 0.85;
       }
 
       section {
@@ -77,12 +167,18 @@
       }
 
       .label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.14em;
+        font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
         color: var(--accent);
-        margin: 0 0 4px;
+        margin: 0 0 10px;
+      }
+
+      /* .hero p would otherwise win on specificity and mute the eyebrow. */
+      .hero p.label {
+        color: var(--accent);
       }
 
       section h2 {
@@ -100,7 +196,7 @@
       .card {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: var(--r);
         padding: 28px;
       }
 
@@ -150,18 +246,18 @@
       /* A bar per cell, so the cascade has a shape to travel along. */
       .stagger-cell i {
         display: block;
-        height: 6px;
-        border-radius: 3px;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        opacity: 0.55;
+        height: 5px;
+        border-radius: var(--r-sm);
+        background: var(--accent);
+        opacity: 0.5;
       }
 
       code {
-        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
         font-size: 0.85em;
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 6px;
+        border-radius: var(--r-sm);
         padding: 2px 6px;
       }
 
@@ -181,12 +277,16 @@
     <main>
       <header class="hero">
         <p class="label">appear-on-scroll v2</p>
-        <h1>Elements that <span>arrive</span> with the scroll.</h1>
+        <h1>Elements that <em>arrive</em> with the scroll.</h1>
         <p>
           IntersectionObserver-based reveals with a scroll-direction-aware slide: scroll down and things rise into
           place, scroll back up and they settle down from above. Zero dependencies.
         </p>
-        <p class="hint">Scroll to see each animation — then scroll back up.</p>
+        <p class="hint">Scroll down for each animation, then scroll back up to see them arrive the other way.</p>
+
+        <button class="tease" type="button" aria-label="Scroll to the first example">
+          <span class="bob"><span class="chevron"></span></span>
+        </button>
       </header>
 
       <section id="slide">
@@ -338,6 +438,10 @@
 
       // Test hook: lets the Playwright suite call destroy() on everything.
       window.__aosInstances = instances;
+
+      document.querySelector('.tease').addEventListener('click', () => {
+        document.getElementById('slide').scrollIntoView({behavior: 'smooth', block: 'start'});
+      });
     </script>
   </body>
 </html>
