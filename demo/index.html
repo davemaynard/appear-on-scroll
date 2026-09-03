@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>appear-on-scroll — demo</title>
+    <title>appear-on-scroll demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,500&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -22,10 +22,18 @@
         /* Two radii, and only two: hairlines and cards. */
         --r-sm: 3px;
         --r: 8px;
+        --nav-height: 64px;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       }
 
       * {
         box-sizing: border-box;
+      }
+
+      html {
+        /* The scrollbar, form controls and overscroll all take the page's theme. */
+        color-scheme: dark;
+        background: var(--bg);
       }
 
       body {
@@ -33,7 +41,7 @@
         background: var(--bg);
         color: var(--text);
         font-family:
-          'Geist',
+          'IBM Plex Sans',
           ui-sans-serif,
           system-ui,
           -apple-system,
@@ -42,19 +50,96 @@
         -webkit-font-smoothing: antialiased;
       }
 
+      ::selection {
+        background: rgb(217 148 74 / 0.35);
+        color: var(--text);
+      }
+
+      a {
+        color: var(--text);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.18em;
+        text-decoration-color: var(--muted);
+      }
+
+      a:hover {
+        text-decoration-color: var(--accent);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+        border-radius: var(--r-sm);
+      }
+
       main {
         max-width: 880px;
         margin: 0 auto;
         padding: 0 24px;
       }
 
+      h1,
+      h2,
+      h3 {
+        text-wrap: balance;
+      }
+
+      p {
+        text-wrap: pretty;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: var(--nav-height);
+        font-size: 0.95rem;
+      }
+
+      .top .name {
+        font-weight: 500;
+        text-decoration: none;
+      }
+
       .hero {
         position: relative;
-        min-height: 92vh;
+        /* Fill the first screen minus the bar above it, using the small viewport
+           so the caret does not jump when a phone's address bar collapses. */
+        min-height: calc(100vh - var(--nav-height));
+        min-height: calc(100svh - var(--nav-height));
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 12px;
+        gap: 14px;
+        padding-bottom: 12vh;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.2rem, 5.2vw, 3.5rem);
+        font-weight: 600;
+        /* Display type sets its own leading; the body's 1.6 leaves headlines
+           floating apart. 1.08 still clears the italic's descenders. */
+        line-height: 1.08;
+        margin: 0;
+        letter-spacing: -0.02em;
+        max-width: 18ch;
+      }
+
+      /* Emphasis inside a headline belongs to the same typeface. Italic reads as
+         intent; a gradient fill reads as decoration looking for a job. */
+      .hero h1 em {
+        font-style: italic;
+        font-weight: 500;
+        /* Descender clearance, so the italic never clips against tight leading. */
+        line-height: 1.1;
+        padding-bottom: 0.06em;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 44ch;
+        margin: 0;
       }
 
       /* The tease: an invitation to scroll, anchored to the foot of the first
@@ -64,7 +149,6 @@
         position: absolute;
         bottom: 4vh;
         left: 50%;
-        transform: translateX(-50%);
         display: grid;
         place-items: center;
         width: 44px;
@@ -75,11 +159,14 @@
         border-radius: 999px;
         color: var(--accent);
         cursor: pointer;
+        transform: translateX(-50%);
+        transition: transform 160ms var(--ease-out);
       }
 
-      .tease:hover .chevron,
-      .tease:focus-visible .chevron {
-        opacity: 1;
+      /* Press feedback lives on the button, not the bobbing span: the keyframe
+         animation owns that span's transform and would swallow it. */
+      .tease:active {
+        transform: translateX(-50%) scale(0.94);
       }
 
       .tease:focus-visible {
@@ -87,8 +174,14 @@
         outline-offset: 2px;
       }
 
-      .tease:active .bob {
-        transform: translateY(6px);
+      @media (hover: hover) and (pointer: fine) {
+        .tease:hover .chevron {
+          opacity: 1;
+        }
+      }
+
+      .tease:focus-visible .chevron {
+        opacity: 1;
       }
 
       .bob {
@@ -105,7 +198,7 @@
         border-bottom: 2px solid currentColor;
         transform: rotate(45deg);
         opacity: 0.75;
-        transition: opacity 0.2s ease;
+        transition: opacity 200ms ease;
       }
 
       @keyframes bob {
@@ -125,72 +218,29 @@
         .bob {
           animation: none;
         }
+        .tease {
+          transition: none;
+        }
       }
 
-      .hero h1 {
-        font-size: clamp(2.2rem, 5.2vw, 3.5rem);
-        font-weight: 600;
-        /* Display type sets its own leading; the body's 1.6 leaves headlines
-           floating apart. 1.08 still clears the italic's descenders. */
-        line-height: 1.08;
-        margin: 0;
-        letter-spacing: -0.028em;
-        max-width: 18ch;
-      }
-
-      /* Emphasis inside a headline belongs to the same typeface. Italic reads as
-         intent; a gradient fill reads as decoration looking for a job. */
-      .hero h1 em {
-        font-style: italic;
-        font-weight: 500;
-        /* Descender clearance, so the italic never clips against tight leading. */
-        line-height: 1.1;
-        padding-bottom: 0.06em;
-      }
-
-      .hero p {
-        color: var(--muted);
-        max-width: 46ch;
-        margin: 0;
-      }
-
-      .hero .hint {
-        margin-top: 28px;
-        font-size: 0.85rem;
-        color: var(--muted);
-        opacity: 0.85;
-      }
-
+      /* Each example gets a screen's worth of room, so its reveal is seen alone. */
       section {
         padding: 22vh 0;
         border-top: 1px solid var(--border);
       }
 
-      .label {
-        font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--accent);
-        margin: 0 0 10px;
-      }
-
-      /* .hero p would otherwise win on specificity and mute the eyebrow. */
-      .hero p.label {
-        color: var(--accent);
-      }
-
       section h2 {
-        margin: 0 0 6px;
-        font-size: 1.6rem;
-        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+        font-size: 1.75rem;
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
       }
 
       section > p {
         color: var(--muted);
         margin: 0 0 40px;
-        max-width: 60ch;
+        max-width: 62ch;
       }
 
       .card {
@@ -203,6 +253,7 @@
       .card h3 {
         margin: 0 0 6px;
         font-size: 1.05rem;
+        font-weight: 600;
       }
 
       .card p {
@@ -217,8 +268,9 @@
         gap: 16px;
       }
 
-      .row + .row {
-        margin-top: 16px;
+      /* A lone card should look like a card, not a banner. */
+      .row.single {
+        grid-template-columns: minmax(0, 420px);
       }
 
       .grid {
@@ -236,6 +288,7 @@
         color: var(--muted);
       }
 
+      /* The numerals are the order of arrival: they are what the cascade shows. */
       .stagger-cell b {
         font-size: 1.6rem;
         font-weight: 600;
@@ -253,7 +306,7 @@
       }
 
       code {
-        font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+        font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
         font-size: 0.85em;
         background: var(--surface);
         border: 1px solid var(--border);
@@ -262,27 +315,53 @@
       }
 
       footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
         border-top: 1px solid var(--border);
-        padding: 48px 0 64px;
+        padding: 40px 0 64px;
         color: var(--muted);
         font-size: 0.85rem;
       }
 
-      footer a {
-        color: var(--accent);
+      footer p {
+        margin: 0;
+      }
+
+      @media (max-width: 640px) {
+        section {
+          padding: 18vh 0;
+        }
+
+        .card {
+          padding: 20px;
+        }
+
+        .grid {
+          gap: 10px;
+        }
+
+        .grid .card {
+          padding: 14px;
+        }
+
+        .stagger-cell b {
+          font-size: 1.25rem;
+        }
       }
     </style>
   </head>
   <body>
     <main>
+      <nav class="top" aria-label="Site">
+        <a class="name" href="./">appear-on-scroll</a>
+        <a href="https://github.com/davemaynard/appear-on-scroll">GitHub</a>
+      </nav>
+
       <header class="hero">
-        <p class="label">appear-on-scroll v2</p>
         <h1>Elements that <em>arrive</em> with the scroll.</h1>
-        <p>
-          IntersectionObserver-based reveals with a scroll-direction-aware slide: scroll down and things rise into
-          place, scroll back up and they settle down from above. Zero dependencies.
-        </p>
-        <p class="hint">Scroll down for each animation, then scroll back up to see them arrive the other way.</p>
+        <p>Reveal any element on scroll, with a slide that knows which way you scrolled. No dependencies.</p>
 
         <button class="tease" type="button" aria-label="Scroll to the first example">
           <span class="bob"><span class="chevron"></span></span>
@@ -290,12 +369,10 @@
       </header>
 
       <section id="slide">
-        <p class="label">The signature</p>
         <h2>Direction-aware slide</h2>
         <p>
-          <code>animation: 'slide'</code> with <code>direction: 'auto'</code> (the defaults). These cards slide
-          <em>up</em> into place as you scroll down, and slide <em>down</em> into place when you scroll back up to them.
-          No scroll listener involved — the observer entry tells us which edge each element crossed.
+          The default. Cards rise into place as you scroll down, and settle from above when you scroll back up to them.
+          The IntersectionObserver entry says which edge was crossed, so there is no scroll listener.
         </p>
         <div class="row">
           <div class="card" data-slide id="dir-el">
@@ -310,9 +387,8 @@
       </section>
 
       <section id="directions">
-        <p class="label">Pinned directions</p>
-        <h2>direction: up · down · left · right</h2>
-        <p>Set an explicit <code>direction</code> and the slide ignores scroll direction entirely.</p>
+        <h2>Pinned directions</h2>
+        <p>Set <code>direction</code> and the slide ignores which way you scrolled.</p>
         <div class="row">
           <div class="card" data-dir-up>
             <h3>up</h3>
@@ -334,12 +410,12 @@
       </section>
 
       <section id="fade">
-        <p class="label">Animation: fade</p>
-        <h2>Pure fade</h2>
+        <h2>Fade</h2>
         <p>
-          <code>animation: 'fade'</code> — or the v1 spelling, <code>slide: false</code>. No movement, just opacity.
+          <code>animation: 'fade'</code>. No movement, only opacity. The v1 spelling, <code>slide: false</code>, still
+          works.
         </p>
-        <div class="row">
+        <div class="row single">
           <div class="card" data-fade id="fade-el">
             <h3>Fade</h3>
             <p>The quiet option.</p>
@@ -348,10 +424,9 @@
       </section>
 
       <section id="zoom">
-        <p class="label">Animation: zoom</p>
         <h2>Zoom</h2>
-        <p><code>animation: 'zoom', scale: 0.9</code> — scales up to full size while fading in.</p>
-        <div class="row">
+        <p><code>animation: 'zoom'</code> with <code>scale: 0.9</code>. Grows to full size while fading in.</p>
+        <div class="row single">
           <div class="card" data-zoom>
             <h3>Zoom</h3>
             <p>Starts at 90% scale.</p>
@@ -360,10 +435,9 @@
       </section>
 
       <section id="blur">
-        <p class="label">Animation: blur</p>
         <h2>Blur</h2>
-        <p><code>animation: 'blur'</code> — sharpens into focus while fading in.</p>
-        <div class="row">
+        <p><code>animation: 'blur'</code>. Sharpens into focus while fading in.</p>
+        <div class="row single">
           <div class="card" data-blur>
             <h3>Blur</h3>
             <p>From soft focus to sharp.</p>
@@ -372,10 +446,9 @@
       </section>
 
       <section id="stagger">
-        <p class="label">Stagger</p>
-        <h2>Stagger grid</h2>
+        <h2>Stagger</h2>
         <p>
-          <code>stagger: 90</code> — elements arriving together each wait 90ms longer than the one before, so a grid
+          <code>stagger: 90</code>. Elements arriving together each wait 90ms longer than the one before, so a grid
           cascades instead of popping in at once. The wave is measured in time rather than in observer batches, so the
           cascade looks the same however fast you scrolled into it.
         </p>
@@ -393,16 +466,15 @@
       </section>
 
       <section id="once">
-        <p class="label">Replay</p>
-        <h2>once: false vs once: true</h2>
+        <h2>Replay, or once</h2>
         <p>
-          By default elements hide again when they leave the viewport and replay on re-entry. With
-          <code>once: true</code> the first appearance sticks.
+          Elements hide again when they leave the viewport and replay on the way back. With <code>once: true</code> the
+          first appearance sticks.
         </p>
         <div class="row">
           <div class="card" data-again id="again-el">
             <h3>once: false</h3>
-            <p>Scroll away and back — I replay every time.</p>
+            <p>Scroll away and back. I replay every time.</p>
           </div>
           <div class="card" data-once id="once-el">
             <h3>once: true</h3>
@@ -412,10 +484,8 @@
       </section>
 
       <footer>
-        <p>
-          appear-on-scroll v2 · zero dependencies · respects <code>prefers-reduced-motion</code> ·
-          <a href="https://github.com/davemaynard/appear-on-scroll">GitHub</a>
-        </p>
+        <p>Zero dependencies. Under 3 KB gzipped. Honours <code>prefers-reduced-motion</code>.</p>
+        <p>Built by <a href="https://davemaynard.dev">Dave Maynard</a></p>
       </footer>
     </main>
 
