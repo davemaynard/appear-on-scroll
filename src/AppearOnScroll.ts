@@ -1,9 +1,23 @@
-import {BASE_CLASS, DEFAULTS, BLUR_FROM, INLINE_PROPERTIES, MOTION_CLASS, VISIBLE_CLASS, resolveOptions} from './constants';
+import {
+  BASE_CLASS,
+  DEFAULTS,
+  BLUR_FROM,
+  INLINE_PROPERTIES,
+  MOTION_CLASS,
+  VISIBLE_CLASS,
+  resolveOptions,
+} from './constants';
 import {acquireStylesheet, releaseStylesheet} from './styles';
 import {AppearOnScrollOptions, ResolvedOptions} from './types';
 
 /** Which side of the viewport an element is (or was last) beyond. */
 type Side = 'above' | 'below';
+
+/** Arrivals further apart than this belong to separate stagger waves. */
+const WAVE_IDLE_MS = 50;
+
+/** performance.now where available; Date.now is close enough and always is. */
+const now_ = (): number => (typeof performance === 'undefined' ? Date.now() : performance.now());
 
 export class AppearOnScroll {
   readonly options: ResolvedOptions;
@@ -19,6 +33,16 @@ export class AppearOnScroll {
    * without a scroll listener.
    */
   private lastSide = new WeakMap<Element, Side>();
+
+  /**
+   * Stagger position within the current arrival wave. The observer batches its
+   * callbacks by scroll speed, not by what the eye sees as one group, so counting
+   * within a callback made the cascade depend on how fast the user scrolled.
+   * A wave instead ends after WAVE_IDLE_MS of no arrivals: elements that land
+   * together cascade, and one arriving alone later starts again at zero delay.
+   */
+  private waveIndex = 0;
+  private lastArrivalAt = -Infinity;
 
   constructor(selector: string, options?: AppearOnScrollOptions) {
     this.options = resolveOptions(options);
@@ -82,13 +106,11 @@ export class AppearOnScroll {
   }
 
   private onIntersect = (entries: IntersectionObserverEntry[]): void => {
-    let batchIndex = 0;
-
     for (const entry of entries) {
       const element = entry.target as HTMLElement;
 
       if (entry.isIntersecting) {
-        this.reveal(element, entry, batchIndex++);
+        this.reveal(element, entry, this.nextWavePosition());
         if (this.options.once) this.observer?.unobserve(element);
       } else {
         this.lastSide.set(element, this.offscreenSide(entry));
@@ -97,7 +119,15 @@ export class AppearOnScroll {
     }
   };
 
-  private reveal(element: HTMLElement, entry: IntersectionObserverEntry, batchIndex: number): void {
+  /** Position in the current wave, restarting once arrivals have gone quiet. */
+  private nextWavePosition(): number {
+    const now = now_();
+    if (now - this.lastArrivalAt > WAVE_IDLE_MS) this.waveIndex = 0;
+    this.lastArrivalAt = now;
+    return this.waveIndex++;
+  }
+
+  private reveal(element: HTMLElement, entry: IntersectionObserverEntry, wavePosition: number): void {
     const {animation, direction, delay, stagger} = this.options;
 
     if (animation === 'slide' && direction === 'auto') {
@@ -105,7 +135,7 @@ export class AppearOnScroll {
     }
 
     if (stagger > 0) {
-      element.style.setProperty('--aos-delay', `${delay + batchIndex * stagger}ms`);
+      element.style.setProperty('--aos-delay', `${delay + wavePosition * stagger}ms`);
     }
 
     element.classList.add(VISIBLE_CLASS);
