@@ -3,7 +3,7 @@
 Reveal elements as they enter the viewport — with a slide that knows which way you're scrolling. Scroll down and elements rise into place from below; scroll back up and they settle down from above. Built on `IntersectionObserver` — zero dependencies, no per-scroll work, about 2.9 KB gzipped.
 
 <a href="https://davemaynard.github.io/appear-on-scroll">
-  <img src="docs/demo.gif" width="720" alt="Scrolling a dark demo page: cards rise into place from below, numbered grid cells cascade in one at a time, and a marker on the right edge follows the scroll position. Scrolling back up, the same cards settle down from above">
+  <img src="docs/demo.gif" width="720" alt="Scrolling a dark demo page: cards rise into place from below, numbered grid cells cascade in one at a time. Scrolling back up, the same cards settle down from above">
 </a>
 
 **[Try it →](https://davemaynard.github.io/appear-on-scroll)**
