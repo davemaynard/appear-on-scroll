@@ -128,3 +128,7 @@ The test suite uses your installed Chrome (`channel: 'chrome'`). No Chrome? Run 
 ## Author
 
 **Dave Maynard** — [GitHub](https://github.com/davemaynard)
+
+## License
+
+MIT

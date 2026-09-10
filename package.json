@@ -47,7 +47,7 @@
     "on-scroll"
   ],
   "author": "Dave Maynard",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/davemaynard/appear-on-scroll/issues"
   },
